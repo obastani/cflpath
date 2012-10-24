@@ -105,6 +105,7 @@ public class CFL {
 		}
 	}
 	
+	// run Knuth's algorithms
 	public HashMap<Element,Path> getShortestPaths() {
 		// map from elements to weights
 		HashMap<Element,Path> mu = new HashMap<Element,Path>();
