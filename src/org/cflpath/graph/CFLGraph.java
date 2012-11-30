@@ -3,6 +3,7 @@ package org.cflpath.graph;
 import java.util.HashSet;
 
 import org.cflpath.cfl.CFL;
+import org.cflpath.cfl.Element;
 import org.cflpath.cfl.Element.Terminal;
 import org.cflpath.cfl.Element.Variable;
 import org.cflpath.cfl.NormalCFL;
@@ -53,12 +54,12 @@ public class CFLGraph extends HashSet<Vertex> {
 		private Vertex source;
 		private Vertex sink;
 		
-		private Terminal terminal;
+		private Element element;
 		
-		public Edge(Vertex source, Vertex sink, Terminal terminal) {
+		public Edge(Vertex source, Vertex sink, Element element) {
 			this.source = source;
 			this.sink = sink;
-			this.terminal = terminal;
+			this.element = element;
 		}
 		
 		public Vertex getSource() {
@@ -69,13 +70,13 @@ public class CFLGraph extends HashSet<Vertex> {
 			return this.sink;
 		}
 		
-		public Terminal getTerminal() {
-			return this.terminal;
+		public Element getElement() {
+			return this.element;
 		}
 		
 		@Override
 		public String toString() {
-			return "(" + source.toString() + "," + sink.toString() + "," + terminal.toString() + ")";
+			return "(" + this.source.toString() + "," + this.sink.toString() + "," + this.element.toString() + ")";
 		}
 	}
 	
@@ -117,7 +118,7 @@ public class CFLGraph extends HashSet<Vertex> {
 			} else if(singleProduction.getInput().isTerminal()){
 				Terminal input = (Terminal)singleProduction.getInput();
 				for(Edge edge : this.edges) {
-					if(input.equals(edge.getTerminal())) {
+					if(input.equals(edge.getElement())) {
 						Variable graphTarget = getGraphVariable(target, edge.getSource(), edge.getSink());
 						Terminal graphInput = getGraphTerminal(input, edge.getSource(), edge.getSink());
 						graphCfl.add(new SingleProduction(graphTarget, graphInput));
@@ -144,7 +145,7 @@ public class CFLGraph extends HashSet<Vertex> {
 							Terminal secondInput = (Terminal)pairProduction.getSecondInput();
 							for(Edge secondEdge : intermediate.getOutgoingEdges()) {
 								Vertex sink = secondEdge.getSink();
-								if(secondInput.equals(secondEdge.getTerminal())) {
+								if(secondInput.equals(secondEdge.getElement())) {
 									Variable graphTarget = getGraphVariable(target, source, sink);
 									Terminal graphSecondInput = getGraphTerminal(secondInput, intermediate, sink);
 									graphCfl.add(new PairProduction(graphTarget, graphFirstInput, graphSecondInput));
@@ -158,7 +159,7 @@ public class CFLGraph extends HashSet<Vertex> {
 				for(Edge firstEdge : this.edges) {
 					Vertex source = firstEdge.getSource();
 					Vertex intermediate = firstEdge.getSink();
-					if(firstInput.equals(firstEdge.getTerminal())) {
+					if(firstInput.equals(firstEdge.getElement())) {
 						Terminal graphFirstInput = getGraphTerminal(firstInput, source, intermediate);
 						if(pairProduction.getSecondInput().isVariable()) {
 							Variable secondInput = (Variable)pairProduction.getSecondInput();
@@ -171,7 +172,7 @@ public class CFLGraph extends HashSet<Vertex> {
 							Terminal secondInput = (Terminal)pairProduction.getSecondInput();
 							for(Edge secondEdge : firstEdge.getSink().getOutgoingEdges()) {
 								Vertex sink = secondEdge.getSink();
-								if(secondInput.equals(secondEdge.getTerminal())) {
+								if(secondInput.equals(secondEdge.getElement())) {
 									Variable graphTarget = getGraphVariable(target, source, sink);
 									Terminal graphSecondInput = getGraphTerminal(secondInput, intermediate, sink);
 									graphCfl.add(new PairProduction(graphTarget, graphFirstInput, graphSecondInput));

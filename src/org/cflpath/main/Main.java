@@ -15,14 +15,14 @@ import org.cflpath.cfl.Production;
 import org.cflpath.cfl.Production.PairProduction;
 import org.cflpath.cfl.Production.SingleProduction;
 import org.cflpath.graph.CFLGraph.Vertex;
-import org.cflpath.graph.FlowsToGraph;
+import org.cflpath.graph.FlowsToContextGraph;
 import org.cflpath.utility.MultivalueMap;
 
 public class Main {
 	
 	public static CFL getInput(BufferedReader input) throws IOException {
 		// graph
-		FlowsToGraph graph = new FlowsToGraph();
+		FlowsToContextGraph graph = new FlowsToContextGraph();
 		
 		String line;
 		while((line = input.readLine()) != null) {
@@ -35,15 +35,23 @@ public class Main {
 				if(tokens[2].startsWith("new")) {
 					label = graph.getNew();
 				} else if(tokens[2].startsWith("load_")) {
-					String reference = tokens[2].substring(5);
-					graph.addReference(reference);
-					label = graph.getLoad(reference);
+					String field = tokens[2].substring(5);
+					graph.addField(field);
+					label = graph.getLoad(field);
 				} else if(tokens[2].startsWith("store_")) {
 					String reference = tokens[2].substring(6);
-					graph.addReference(reference);
+					graph.addField(reference);
 					label = graph.getStore(reference);
 				} else if(tokens[2].startsWith("assign")) {
 					label = graph.getAssign();
+				} else if(tokens[2].startsWith("enter_")) {
+					String method = tokens[2].substring(6);
+					graph.addMethod(method);
+					label = graph.getEnter(method);
+				} else if(tokens[2].startsWith("exit_")) {
+					String method = tokens[2].substring(5);
+					graph.addMethod(method);
+					label = graph.getExit(method);
 				}
 				graph.addEdge(source, sink, label);
 			}
@@ -55,7 +63,7 @@ public class Main {
 			String name = vertex.getName();
 			if(name.startsWith("$PARAM$STUB")) {
 				String[] tokens = name.substring(12, name.length()-1).split("\\]\\[");
-				System.out.println(tokens[0] + "," + tokens[1]);
+				//System.out.println(tokens[0] + "," + tokens[1]);
 				if(tokens[1].equals("ret")) {
 					methodRet.put(tokens[0], new Vertex(name));
 				} else {
@@ -64,18 +72,21 @@ public class Main {
 			}
 		}
 		for(String methodName : methodArgs.keySet()) {
-			graph.addMethod(methodArgs.get(methodName), methodRet.get(methodName), methodName);
+			graph.addStubMethod(methodArgs.get(methodName), methodRet.get(methodName), methodName);
 		}
 		
-		return graph.getGraphCFL();
+		//System.out.println(graph);
+		//System.out.println(graph.getFlowsToCFL());
+		
+		return graph.getFlowsToGraphCFL();
 	}
 	
 	public static CFL getSimpleCFLGraph() {
 		// graph
-		FlowsToGraph graph = new FlowsToGraph();
+		FlowsToContextGraph graph = new FlowsToContextGraph();
 		
 		// references
-		graph.addReference("f");
+		graph.addField("f");
 		
 		// terminals
 		Terminal assign = graph.getAssign();
@@ -102,10 +113,10 @@ public class Main {
 		graph.addEdge(w, v, load_f);
 		
 		// flows to cfl
-		System.out.println(graph.getFlowsToCfl());
+		//System.out.println(graph.getFlowsToCFL());
 		
 		// return graph cfl
-		return graph.getGraphCFL();
+		return graph.getFlowsToGraphCFL();
 	}
 	
 	public static CFL getSimpleCFL() {
@@ -124,6 +135,12 @@ public class Main {
 	}
 	
 	public static void main(String[] args) {
+		/*
+		FlowsToContextGraph contextGraph = new FlowsToContextGraph();
+		contextGraph.addMethod("foo");
+		NormalCFL cfl = contextGraph.getContextCFL();
+		System.out.println(cfl.getCFL());
+		*/
 		try {
 			CFL graphCfl = getInput(new BufferedReader(new FileReader("input.txt")));
 			//CFL graphCfl = getSimpleCFLGraph();

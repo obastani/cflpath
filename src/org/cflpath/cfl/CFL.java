@@ -63,7 +63,7 @@ public class CFL {
 		}
 		return targets;
 	}
-	
+		
 	public static class Path {
 		private List<Terminal> terminals = new LinkedList<Terminal>();
 		private double weight;
