@@ -13,34 +13,16 @@ import org.cflpath.cfl.Production.EmptyProduction;
 import org.cflpath.cfl.Production.PairProduction;
 import org.cflpath.cfl.Production.SingleProduction;
 import org.cflpath.graph.CFLGraph.Vertex;
+import org.cflpath.utility.MultivalueMap;
 
 public class CFLGraph extends HashSet<Vertex> {
 	private static final long serialVersionUID = 1L;
 	
-	public static class Vertex {
-		private HashSet<Edge> incomingEdges = new HashSet<Edge>();
-		private HashSet<Edge> outgoingEdges = new HashSet<Edge>();
-		
+	public static class Vertex {		
 		private String name;
 		
 		public Vertex(String name) {
 			this.name = name;
-		}
-		
-		public void addOutgoingEdge(Edge edge) {
-			this.outgoingEdges.add(edge);
-		}
-		
-		public HashSet<Edge> getOutgoingEdges() {
-			return this.outgoingEdges;
-		}
-		
-		public void addIncomingEdge(Edge edge) {
-			this.incomingEdges.add(edge);
-		}
-		
-		public HashSet<Edge> getIncomingEdges() {
-			return this.incomingEdges;
 		}
 		
 		public String getName() {
@@ -119,7 +101,17 @@ public class CFLGraph extends HashSet<Vertex> {
 		}
 	}
 	
-	private HashSet<Edge> edges = new HashSet<Edge>();
+	private Set<Edge> edges = new HashSet<Edge>();
+	private MultivalueMap<Vertex,Edge> incomingEdges = new MultivalueMap<Vertex,Edge>();
+	private MultivalueMap<Vertex,Edge> outgoingEdges = new MultivalueMap<Vertex,Edge>();
+	
+	public MultivalueMap<Vertex,Edge> getIncomingEdges() {
+		return this.incomingEdges;
+	}
+	
+	public MultivalueMap<Vertex,Edge> getOutgoingEdges() {
+		return this.outgoingEdges;
+	}
 	
 	public Edge addEdge(Vertex source, Vertex sink, Element element) {
 		super.add(source);
@@ -127,13 +119,13 @@ public class CFLGraph extends HashSet<Vertex> {
 		
 		Edge edge = new Edge(source, sink, element);
 
-		source.addOutgoingEdge(edge);
-		sink.addIncomingEdge(edge);
+		this.outgoingEdges.add(source, edge);
+		this.incomingEdges.add(sink, edge);
 		
 		return this.edges.add(edge) ? edge : null;
 	}
 	
-	public HashSet<Edge> getEdges() {
+	public Set<Edge> getEdges() {
 		return this.edges;
 	}
 	
@@ -186,7 +178,7 @@ public class CFLGraph extends HashSet<Vertex> {
 							}
 						} else if(pairProduction.getSecondInput().isTerminal()) {
 							Terminal secondInput = (Terminal)pairProduction.getSecondInput();
-							for(Edge secondEdge : intermediate.getOutgoingEdges()) {
+							for(Edge secondEdge : this.outgoingEdges.get(intermediate)) {
 								Vertex sink = secondEdge.getSink();
 								if(secondInput.equals(secondEdge.getElement())) {
 									Variable graphTarget = getGraphVariable(target, source, sink);
@@ -213,7 +205,7 @@ public class CFLGraph extends HashSet<Vertex> {
 							}
 						} else if(pairProduction.getSecondInput().isTerminal()) {
 							Terminal secondInput = (Terminal)pairProduction.getSecondInput();
-							for(Edge secondEdge : firstEdge.getSink().getOutgoingEdges()) {
+							for(Edge secondEdge : this.outgoingEdges.get(firstEdge.getSink())) {
 								Vertex sink = secondEdge.getSink();
 								if(secondInput.equals(secondEdge.getElement())) {
 									Variable graphTarget = getGraphVariable(target, source, sink);
@@ -245,38 +237,40 @@ public class CFLGraph extends HashSet<Vertex> {
 			}
 		}
 		
+		int i=0;
 		while(!workflow.isEmpty()) {
-			Edge currentEdge = workflow.remove();
+			if(i%1000 == 0) {
+				System.out.println(i);
+				System.out.println(workflow.size());
+				System.out.println();
+			}
+			i++;
 			
-			for(SingleProduction singleProduction : normalCfl.getSingleProductions()) {
-				if(currentEdge.getElement().equals(singleProduction.getInput())) {
-					if((newEdge = this.addEdge(currentEdge.getSource(), currentEdge.getSink(), singleProduction.getTarget())) != null) {
-						workflow.add(newEdge);
-					}
+			Edge currentEdge = workflow.remove();
+
+			for(SingleProduction singleProduction : normalCfl.getSingleProductionsByInput(currentEdge.getElement())) {
+				if((newEdge = this.addEdge(currentEdge.getSource(), currentEdge.getSink(), singleProduction.getTarget())) != null) {
+					workflow.add(newEdge);
 				}
 			}
 			
-			for(PairProduction pairProduction : normalCfl.getPairProductions()) {
-				if(currentEdge.getElement().equals(pairProduction.getFirstInput())) {
-					Set<Edge> outgoingEdges = new HashSet<Edge>(currentEdge.getSink().getOutgoingEdges());
-					for(Edge edge : outgoingEdges) {
-						if(edge.getElement().equals(pairProduction.getSecondInput())) {
-							if((newEdge = this.addEdge(currentEdge.getSource(), edge.getSink(), pairProduction.getTarget())) != null) {
-								workflow.add(newEdge);
-							}
+			for(PairProduction pairProduction : normalCfl.getPairProductionsByFirstInput(currentEdge.getElement())) {
+				Set<Edge> outgoingEdges = new HashSet<Edge>(this.outgoingEdges.get(currentEdge.getSink()));
+				for(Edge edge : outgoingEdges) {
+					if(edge.getElement().equals(pairProduction.getSecondInput())) {
+						if((newEdge = this.addEdge(currentEdge.getSource(), edge.getSink(), pairProduction.getTarget())) != null) {
+							workflow.add(newEdge);
 						}
 					}
 				}
 			}
 			
-			for(PairProduction pairProduction : normalCfl.getPairProductions()) {
-				if(currentEdge.getElement().equals(pairProduction.getSecondInput())) {
-					Set<Edge> incomingEdges = new HashSet<Edge>(currentEdge.getSource().getIncomingEdges());
-					for(Edge edge : incomingEdges) {
-						if(edge.getElement().equals(pairProduction.getFirstInput())) {
-							if((newEdge = this.addEdge(edge.getSource(), currentEdge.getSink(), pairProduction.getTarget())) != null) {
-								workflow.add(newEdge);
-							}
+			for(PairProduction pairProduction : normalCfl.getPairProductionsBySecondInput(currentEdge.getElement())) {
+				Set<Edge> incomingEdges = new HashSet<Edge>(this.incomingEdges.get(currentEdge.getSource()));
+				for(Edge edge : incomingEdges) {
+					if(edge.getElement().equals(pairProduction.getFirstInput())) {
+						if((newEdge = this.addEdge(edge.getSource(), currentEdge.getSink(), pairProduction.getTarget())) != null) {
+							workflow.add(newEdge);
 						}
 					}
 				}

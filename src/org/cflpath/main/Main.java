@@ -86,8 +86,7 @@ public class Main {
 		//System.out.println(graph);
 		//System.out.println(graph.getFlowsToCFL());
 		
-		//return graph.getFlowsToGraphCFL();
-		return new CFL();
+		return graph.getFlowsToGraphCFL();
 	}
 	
 	public static CFL getSimpleCFLGraph() {
@@ -151,7 +150,8 @@ public class Main {
 		System.out.println(cfl.getCFL());
 		*/
 		try {
-			CFL graphCfl = getInput(new BufferedReader(new FileReader("input.txt")));
+			//CFL graphCfl = getInput(new BufferedReader(new FileReader("input.txt")));
+			CFL graphCfl = getInput(new BufferedReader(new FileReader("cfl.reps")));
 			//CFL graphCfl = getSimpleCFLGraph();
 			//System.out.println(graphCfl);
 			Map<Element,Path> shortestPaths = graphCfl.getShortestPaths();

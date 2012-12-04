@@ -1,0 +1,15 @@
+v4 v5 assign
+v6 v7 assign
+v6 v8 assign
+v11 v12 assign
+o1 v6 new
+o2 v11 new
+v2 v1 store_1
+v8 v9 load_1
+v0 v13 assign
+v1 v13 assign
+v5 v2 assign
+v7 v1 assign
+v9 v10 assign
+v12 v0 assign
+v11 v4 assign

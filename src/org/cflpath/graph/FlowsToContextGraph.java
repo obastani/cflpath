@@ -1,6 +1,7 @@
 package org.cflpath.graph;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -8,7 +9,9 @@ import org.cflpath.cfl.CFL;
 import org.cflpath.cfl.Element.Terminal;
 import org.cflpath.cfl.Element.Variable;
 import org.cflpath.cfl.NormalCFL;
+import org.cflpath.cfl.Production.EmptyProduction;
 import org.cflpath.cfl.Production.GeneralProduction;
+import org.cflpath.cfl.Production.PairProduction;
 import org.cflpath.cfl.Production.SingleProduction;
 
 public class FlowsToContextGraph extends CFLGraph {
@@ -35,7 +38,7 @@ public class FlowsToContextGraph extends CFLGraph {
 	private Variable flowsToBar = new Variable("flowsToBar");
 	private Variable flowsToRight = new Variable("flowsToRight");
 	private Variable alias = new Variable("alias");
-	private Variable contextTerminal = new Variable("contextTerminal");
+	//private Variable contextTerminal = new Variable("contextTerminal");
 	
 	// terminals for context cfl
 
@@ -45,7 +48,7 @@ public class FlowsToContextGraph extends CFLGraph {
 	// variables for context cfl
 
 	private Variable context = new Variable("context");
-	private Variable flowsToTerminal = new Variable("flowsToTerminal");
+	//private Variable flowsToTerminal = new Variable("flowsToTerminal");
 	
 	// functions for adding fields and methods
 
@@ -146,6 +149,7 @@ public class FlowsToContextGraph extends CFLGraph {
 			cfl.add(new GeneralProduction(this.flowsToRight, this.store_(field), this.alias, this.load_star));
 		}
 		
+		/*
 		// ignore context terminals
 		for(String method : this.methods) {
 			// add production contextTerminal -> enter_m
@@ -163,10 +167,78 @@ public class FlowsToContextGraph extends CFLGraph {
 
 		cfl.add(new GeneralProduction(this.alias, this.contextTerminal, this.alias));
 		cfl.add(new GeneralProduction(this.alias, this.alias, this.contextTerminal));
+		*/
 		
 		return cfl;
 	}
 
+	@Override
+	public void addProductions(NormalCFL normalCfl) {
+		LinkedList<Edge> workflow = new LinkedList<Edge>();
+		Edge newEdge;
+		
+		for(Edge edge : super.getEdges()) {
+			workflow.add(edge);
+		}
+		
+		for(EmptyProduction emptyProduction : normalCfl.getEmptyProductions()) {
+			for(Vertex vertex : this) {
+				if((newEdge = this.addEdge(vertex, vertex, emptyProduction.getTarget())) != null) {
+					workflow.add(newEdge);
+				}
+			}
+		}
+		
+		int i=0;
+		while(!workflow.isEmpty()) {
+			if(i%1000 == 0) {
+				System.out.println(i);
+				System.out.println(workflow.size());
+				System.out.println();
+			}
+			i++;
+			
+			Edge currentEdge = workflow.remove();
+
+			for(SingleProduction singleProduction : normalCfl.getSingleProductionsByInput(currentEdge.getElement())) {
+				if((newEdge = this.addEdge(currentEdge.getSource(), currentEdge.getSink(), singleProduction.getTarget())) != null) {
+					workflow.add(newEdge);
+					if(newEdge.getElement().equals(new Variable("flowsTo"))) {
+						newEdge = this.addEdge(currentEdge.getSink(), currentEdge.getSource(), new Variable("flowsToBar"));
+					}
+				}
+			}
+			
+			for(PairProduction pairProduction : normalCfl.getPairProductionsByFirstInput(currentEdge.getElement())) {
+				Set<Edge> outgoingEdges = new HashSet<Edge>(super.getOutgoingEdges().get(currentEdge.getSink()));
+				for(Edge edge : outgoingEdges) {
+					if(edge.getElement().equals(pairProduction.getSecondInput())) {
+						if((newEdge = this.addEdge(currentEdge.getSource(), edge.getSink(), pairProduction.getTarget())) != null) {
+							workflow.add(newEdge);
+							if(newEdge.getElement().equals(new Variable("flowsTo"))) {
+								this.addEdge(edge.getSink(), currentEdge.getSource(), new Variable("flowsToBar"));
+							}
+						}
+					}
+				}
+			}
+			
+			for(PairProduction pairProduction : normalCfl.getPairProductionsBySecondInput(currentEdge.getElement())) {
+				Set<Edge> incomingEdges = new HashSet<Edge>(super.getIncomingEdges().get(currentEdge.getSource()));
+				for(Edge edge : incomingEdges) {
+					if(edge.getElement().equals(pairProduction.getFirstInput())) {
+						if((newEdge = this.addEdge(edge.getSource(), currentEdge.getSink(), pairProduction.getTarget())) != null) {
+							workflow.add(newEdge);
+							if(newEdge.getElement().equals(new Variable("flowsTo"))) {
+								this.addEdge(currentEdge.getSink(), edge.getSource(), new Variable("flowsToBar"));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	public CFL getFlowsToGraphCFL() {
 		CFL graphCfl = super.getGraphCFL(this.getFlowsToCFL());
 		// add production flowsToBar(u, v) -> flowsTo 
@@ -195,6 +267,7 @@ public class FlowsToContextGraph extends CFLGraph {
 			cfl.add(new GeneralProduction(this.context, this.context, this.context));
 		}
 		
+		/*
 		// ignore flows-to terminals
 		cfl.add(new GeneralProduction(this.flowsToTerminal, this.new_terminal));
 		cfl.add(new GeneralProduction(this.flowsToTerminal, this.assign));
@@ -208,6 +281,7 @@ public class FlowsToContextGraph extends CFLGraph {
 		
 		cfl.add(new GeneralProduction(this.context, this.flowsToTerminal, this.context));
 		cfl.add(new GeneralProduction(this.context, this.context, this.flowsToTerminal));
+		*/
 		
 		return cfl;
 	}
