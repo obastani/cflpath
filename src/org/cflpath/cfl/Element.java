@@ -74,11 +74,7 @@ public abstract class Element {
 			return false;
 		} else {
 			Element element = (Element)object;
-			if(this.name.equals(element.getName())) {
-				return true;
-			} else {
-				return false;
-			}
+			return this.name.equals(element.getName());
 		}
 	}
 }

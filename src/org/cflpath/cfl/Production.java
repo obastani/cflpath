@@ -41,6 +41,22 @@ public abstract class Production {
 			}
 		}
 	}
+	
+	public static class EmptyProduction extends Production {
+		public EmptyProduction(Variable target) {
+			super(target);
+		}
+
+		@Override
+		public ArrayList<Element> getInputs() {
+			return new ArrayList<Element>();
+		}
+
+		@Override
+		public boolean matches(ArrayList<Element> inputs) {
+			return inputs.size() == 0;
+		}
+	}
 
 	public static class SingleProduction extends Production {
 		private Element input;

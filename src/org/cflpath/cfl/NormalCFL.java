@@ -4,14 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.cflpath.cfl.Element.Variable;
+import org.cflpath.cfl.Production.EmptyProduction;
 import org.cflpath.cfl.Production.PairProduction;
 import org.cflpath.cfl.Production.SingleProduction;
 
 public class NormalCFL {
 
 	private CFL cfl = new CFL();
+	private List<EmptyProduction> emptyProductions = new ArrayList<EmptyProduction>();
 	private List<SingleProduction> singleProductions = new ArrayList<SingleProduction>();
 	private List<PairProduction> pairProductions = new ArrayList<PairProduction>();
+	
+	public void add(EmptyProduction emptyProduction) {
+		this.cfl.add(emptyProduction);
+		this.emptyProductions.add(emptyProduction);
+	}
+	
+	public List<EmptyProduction> getEmptyProductions() {
+		return this.emptyProductions;
+	}
 	
 	public void add(SingleProduction singleProduction) {
 		this.cfl.add(singleProduction);
@@ -36,6 +47,7 @@ public class NormalCFL {
 	public void add(Production production) {
 		switch(production.getInputs().size()) {
 		case 0:
+			this.add(new EmptyProduction(production.getTarget()));
 			break;
 	    case 1:
 	    	this.add(new SingleProduction(production.getTarget(), production.getInputs().get(0)));

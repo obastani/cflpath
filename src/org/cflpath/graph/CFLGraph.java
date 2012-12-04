@@ -1,12 +1,15 @@
 package org.cflpath.graph;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
 
 import org.cflpath.cfl.CFL;
 import org.cflpath.cfl.Element;
 import org.cflpath.cfl.Element.Terminal;
 import org.cflpath.cfl.Element.Variable;
 import org.cflpath.cfl.NormalCFL;
+import org.cflpath.cfl.Production.EmptyProduction;
 import org.cflpath.cfl.Production.PairProduction;
 import org.cflpath.cfl.Production.SingleProduction;
 import org.cflpath.graph.CFLGraph.Vertex;
@@ -48,6 +51,23 @@ public class CFLGraph extends HashSet<Vertex> {
 		public String toString() {
 			return this.name;
 		}
+		
+		@Override
+		public int hashCode() {
+			return this.name.hashCode();
+		}
+		
+		@Override
+		public boolean equals(Object object) {
+			if(this == object) {
+				return true;
+			} else if(object == null || this.getClass() != object.getClass()) {
+				return false;
+			} else {
+				Vertex vertex = (Vertex)object;
+				return this.name.equals(vertex.getName());
+			}
+		}
 	}
 	
 	public static class Edge {
@@ -78,20 +98,43 @@ public class CFLGraph extends HashSet<Vertex> {
 		public String toString() {
 			return "(" + this.source.toString() + "," + this.sink.toString() + "," + this.element.toString() + ")";
 		}
+		
+		@Override
+		public int hashCode() {
+			return 37*(59*this.source.hashCode() + this.sink.hashCode()) + this.element.hashCode(); 
+		}
+		
+		@Override
+		public boolean equals(Object object) {
+			if(this == object) {
+				return true;
+			} else if(object == null || this.getClass() != object.getClass()) {
+				return false;
+			} else {
+				Edge edge = (Edge)object;
+				return this.source.equals(edge.getSource())
+						&& this.sink.equals(edge.getSink())
+						&& this.element.equals(edge.getElement());
+			}
+		}
 	}
 	
 	private HashSet<Edge> edges = new HashSet<Edge>();
 	
-	public boolean addEdge(Vertex source, Vertex sink, Terminal terminal) {
+	public Edge addEdge(Vertex source, Vertex sink, Element element) {
 		super.add(source);
 		super.add(sink);
 		
-		Edge edge = new Edge(source, sink, terminal);
+		Edge edge = new Edge(source, sink, element);
 
 		source.addOutgoingEdge(edge);
 		sink.addIncomingEdge(edge);
 		
-		return this.edges.add(edge);
+		return this.edges.add(edge) ? edge : null;
+	}
+	
+	public HashSet<Edge> getEdges() {
+		return this.edges;
 	}
 	
 	public static Terminal getGraphTerminal(Terminal terminal, Vertex source, Vertex sink) {
@@ -184,6 +227,61 @@ public class CFLGraph extends HashSet<Vertex> {
 			}
 		}
 		return graphCfl;
+	}
+	
+	public void addProductions(NormalCFL normalCfl) {
+		LinkedList<Edge> workflow = new LinkedList<Edge>();
+		Edge newEdge;
+		
+		for(Edge edge : this.edges){
+			workflow.add(edge);
+		}
+		
+		for(EmptyProduction emptyProduction : normalCfl.getEmptyProductions()) {
+			for(Vertex vertex : this) {
+				if((newEdge = this.addEdge(vertex, vertex, emptyProduction.getTarget())) != null) {
+					workflow.add(newEdge);
+				}
+			}
+		}
+		
+		while(!workflow.isEmpty()) {
+			Edge currentEdge = workflow.remove();
+			
+			for(SingleProduction singleProduction : normalCfl.getSingleProductions()) {
+				if(currentEdge.getElement().equals(singleProduction.getInput())) {
+					if((newEdge = this.addEdge(currentEdge.getSource(), currentEdge.getSink(), singleProduction.getTarget())) != null) {
+						workflow.add(newEdge);
+					}
+				}
+			}
+			
+			for(PairProduction pairProduction : normalCfl.getPairProductions()) {
+				if(currentEdge.getElement().equals(pairProduction.getFirstInput())) {
+					Set<Edge> outgoingEdges = new HashSet<Edge>(currentEdge.getSink().getOutgoingEdges());
+					for(Edge edge : outgoingEdges) {
+						if(edge.getElement().equals(pairProduction.getSecondInput())) {
+							if((newEdge = this.addEdge(currentEdge.getSource(), edge.getSink(), pairProduction.getTarget())) != null) {
+								workflow.add(newEdge);
+							}
+						}
+					}
+				}
+			}
+			
+			for(PairProduction pairProduction : normalCfl.getPairProductions()) {
+				if(currentEdge.getElement().equals(pairProduction.getSecondInput())) {
+					Set<Edge> incomingEdges = new HashSet<Edge>(currentEdge.getSource().getIncomingEdges());
+					for(Edge edge : incomingEdges) {
+						if(edge.getElement().equals(pairProduction.getFirstInput())) {
+							if((newEdge = this.addEdge(edge.getSource(), currentEdge.getSink(), pairProduction.getTarget())) != null) {
+								workflow.add(newEdge);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	public String toString() {

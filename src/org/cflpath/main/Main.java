@@ -14,6 +14,7 @@ import org.cflpath.cfl.Element.Variable;
 import org.cflpath.cfl.Production;
 import org.cflpath.cfl.Production.PairProduction;
 import org.cflpath.cfl.Production.SingleProduction;
+import org.cflpath.graph.CFLGraph.Edge;
 import org.cflpath.graph.CFLGraph.Vertex;
 import org.cflpath.graph.FlowsToContextGraph;
 import org.cflpath.utility.MultivalueMap;
@@ -75,10 +76,18 @@ public class Main {
 			graph.addStubMethod(methodArgs.get(methodName), methodRet.get(methodName), methodName);
 		}
 		
+		graph.addProductions(graph.getFlowsToCFL());
+		for(Edge edge : graph.getEdges()) {
+			if(edge.getElement().equals(new Variable("flowsTo"))) {
+				System.out.println(edge.toString());
+			}
+		}
+				
 		//System.out.println(graph);
 		//System.out.println(graph.getFlowsToCFL());
 		
-		return graph.getFlowsToGraphCFL();
+		//return graph.getFlowsToGraphCFL();
+		return new CFL();
 	}
 	
 	public static CFL getSimpleCFLGraph() {
