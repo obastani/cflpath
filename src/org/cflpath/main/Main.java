@@ -2,6 +2,7 @@ package org.cflpath.main;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -153,7 +154,7 @@ public class Main {
 		long time = System.currentTimeMillis();
 		try {
 			//CFL graphCfl = getInput(new BufferedReader(new FileReader("input.txt")));
-			/*CFL graphCfl = *getInput(new BufferedReader(new FileReader("input.txt")));
+			/*CFL graphCfl = */getInput(new BufferedReader(new FileReader("cfl.reps")));
 			//CFL graphCfl = getSimpleCFLGraph();
 			//System.out.println(graphCfl);
 			/*
