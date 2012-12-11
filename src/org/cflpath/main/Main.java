@@ -1,14 +1,12 @@
 package org.cflpath.main;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.Map;
 
 import org.cflpath.cfl.CFL;
-import org.cflpath.cfl.CFL.Path;
-import org.cflpath.cfl.Element;
 import org.cflpath.cfl.Element.Terminal;
 import org.cflpath.cfl.Element.Variable;
 import org.cflpath.cfl.Production;
@@ -76,16 +74,19 @@ public class Main {
 			graph.addStubMethod(methodArgs.get(methodName), methodRet.get(methodName), methodName);
 		}
 		
+		// CFL REACHABILITY
+		//System.out.println(graph.getFlowsToCFL());
+		PrintWriter pw = new PrintWriter(new File("output.txt"));
 		graph.addProductions(graph.getFlowsToCFL());
 		for(Edge edge : graph.getEdges()) {
 			if(edge.getElement().equals(new Variable("flowsTo"))) {
-				System.out.println(edge.toString());
+				pw.println(edge.toString());
 			}
 		}
+		pw.close();
 				
 		//System.out.println(graph);
 		//System.out.println(graph.getFlowsToCFL());
-		
 		return graph.getFlowsToGraphCFL();
 	}
 	
@@ -149,19 +150,23 @@ public class Main {
 		NormalCFL cfl = contextGraph.getContextCFL();
 		System.out.println(cfl.getCFL());
 		*/
+		long time = System.currentTimeMillis();
 		try {
 			//CFL graphCfl = getInput(new BufferedReader(new FileReader("input.txt")));
-			CFL graphCfl = getInput(new BufferedReader(new FileReader("cfl.reps")));
+			/*CFL graphCfl = *getInput(new BufferedReader(new FileReader("input.txt")));
 			//CFL graphCfl = getSimpleCFLGraph();
 			//System.out.println(graphCfl);
+			/*
 			Map<Element,Path> shortestPaths = graphCfl.getShortestPaths();
 			for(Map.Entry<Element,Path> entry : shortestPaths.entrySet()) {
 				if(entry.getKey().getName().startsWith("flowsTo(")) {
 					System.out.println("element: " + entry.getKey().getName() + ", weight: " + entry.getValue().getWeight());
 				}
 			}
+			*/			
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
+		System.out.println("time: " + (System.currentTimeMillis() - time));
 	}
 }

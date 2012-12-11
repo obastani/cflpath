@@ -144,7 +144,35 @@ public abstract class Production {
 		}
 		return result.substring(0, result.length()-hasInput) + ")";
 	}
+	
+	@Override
+	public int hashCode() {
+		int hashCode = this.target.hashCode();
+		for(Element input : this.getInputs()) {
+			hashCode += input.hashCode();
+		}
+		return hashCode;
+	}
 
+	@Override
+	public boolean equals(Object object) {
+		if(this == object) {
+			return true;
+		} else if(object == null || this.getClass() != object.getClass()) {
+			return false;
+		} else {
+			Production production = (Production)object;
+			if(this.getInputs().size() != production.getInputs().size()) {
+				return false;
+			}
+			boolean equals = this.target.equals(production.getTarget());
+			for(int i=0; i<this.getInputs().size(); i++) {
+				equals &= this.getInputs().get(i).equals(production.getInputs().get(i));
+			}
+			return equals;
+		}		
+	}
+	
 	public abstract ArrayList<Element> getInputs();
 	public abstract boolean matches(ArrayList<Element> inputs);
 }

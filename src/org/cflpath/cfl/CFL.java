@@ -131,7 +131,11 @@ public class CFL {
 		}
 		
 		// loop through each of the variables
+		int i=0;
 		while(true) {
+			if(i%1000 == 0) System.out.println(i);
+			i++;
+			
 			// a list of the minimum length path for each element in mu that maps to null
 			Map<Variable,Path> nu = new HashMap<Variable,Path>();
 			// loop over all productions with all finite inputs that are not yet in mu

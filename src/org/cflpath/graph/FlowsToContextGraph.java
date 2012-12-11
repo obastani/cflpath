@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.cflpath.cfl.CFL;
+import org.cflpath.cfl.Element;
 import org.cflpath.cfl.Element.Terminal;
 import org.cflpath.cfl.Element.Variable;
 import org.cflpath.cfl.NormalCFL;
@@ -13,6 +14,7 @@ import org.cflpath.cfl.Production.EmptyProduction;
 import org.cflpath.cfl.Production.GeneralProduction;
 import org.cflpath.cfl.Production.PairProduction;
 import org.cflpath.cfl.Production.SingleProduction;
+import org.cflpath.utility.Utility.Pair;
 
 public class FlowsToContextGraph extends CFLGraph {
 	private static final long serialVersionUID = 1L;
@@ -119,6 +121,32 @@ public class FlowsToContextGraph extends CFLGraph {
 	
 	public NormalCFL getFlowsToCFL() {
 		NormalCFL cfl = new NormalCFL();
+		
+		// add production flowsToRight -> assign
+		cfl.add(new GeneralProduction(this.flowsToRight, this.assign));
+		
+		// add production flowsToRight -> flowsToRight flowsToRight
+		cfl.add(new GeneralProduction(this.flowsToRight, this.flowsToRight, this.flowsToRight));
+
+		// add production flowsTo -> new
+		cfl.add(new GeneralProduction(this.flowsTo, this.new_terminal));
+		
+		// add production flowsTo ->  new flowsToRight
+		cfl.add(new GeneralProduction(this.flowsTo, this.new_terminal, this.flowsToRight));
+
+		// add production alias -> flowsToBar flowsTo
+		cfl.add(new GeneralProduction(this.alias, this.flowsToBar, this.flowsTo));
+		
+		for(String field : this.fields) {
+			// add production flowsToRight -> store_f alias load_f
+			cfl.add(new GeneralProduction(this.flowsToRight, this.store_(field), this.alias, this.load_(field)));
+		}
+		
+		return cfl;
+	}
+	
+	public NormalCFL getAugmentedFlowsToCFL() {
+		NormalCFL cfl = new NormalCFL();
 
 		// add production flowsToRight -> store_* alias load_*
 		cfl.add(new GeneralProduction(this.flowsToRight, this.store_star, this.alias, this.load_star));
@@ -210,6 +238,7 @@ public class FlowsToContextGraph extends CFLGraph {
 			}
 			
 			for(PairProduction pairProduction : normalCfl.getPairProductionsByFirstInput(currentEdge.getElement())) {
+				/*
 				Set<Edge> outgoingEdges = new HashSet<Edge>(super.getOutgoingEdges().get(currentEdge.getSink()));
 				for(Edge edge : outgoingEdges) {
 					if(edge.getElement().equals(pairProduction.getSecondInput())) {
@@ -221,9 +250,20 @@ public class FlowsToContextGraph extends CFLGraph {
 						}
 					}
 				}
+				*/
+				Set<Edge> outgoingEdges = new HashSet<Edge>(super.getOutgoingEdgesByElement().get(new Pair<Vertex, Element>(currentEdge.getSink(), pairProduction.getSecondInput())));
+				for(Edge edge : outgoingEdges) {
+					if((newEdge = this.addEdge(currentEdge.getSource(), edge.getSink(), pairProduction.getTarget())) != null) {
+						workflow.add(newEdge);
+						if(newEdge.getElement().equals(new Variable("flowsTo"))) {
+							this.addEdge(currentEdge.getSink(), edge.getSource(), new Variable("flowsToBar"));
+						}
+					}
+				}
 			}
 			
 			for(PairProduction pairProduction : normalCfl.getPairProductionsBySecondInput(currentEdge.getElement())) {
+				/*
 				Set<Edge> incomingEdges = new HashSet<Edge>(super.getIncomingEdges().get(currentEdge.getSource()));
 				for(Edge edge : incomingEdges) {
 					if(edge.getElement().equals(pairProduction.getFirstInput())) {
@@ -235,12 +275,22 @@ public class FlowsToContextGraph extends CFLGraph {
 						}
 					}
 				}
+				*/
+				Set<Edge> incomingEdges = new HashSet<Edge>(super.getIncomingEdgesByElement().get(new Pair<Vertex,Element>(currentEdge.getSource(), pairProduction.getFirstInput())));
+				for(Edge edge : incomingEdges) {
+					if((newEdge = this.addEdge(edge.getSource(), currentEdge.getSink(), pairProduction.getTarget())) != null) {
+						workflow.add(newEdge);
+						if(newEdge.getElement().equals(new Variable("flowsTo"))) {
+							this.addEdge(currentEdge.getSink(), edge.getSource(), new Variable("flowsToBar"));
+						}
+					}
+				}
 			}
 		}
 	}
 	
 	public CFL getFlowsToGraphCFL() {
-		CFL graphCfl = super.getGraphCFL(this.getFlowsToCFL());
+		CFL graphCfl = super.getGraphCFL(this.getAugmentedFlowsToCFL());
 		// add production flowsToBar(u, v) -> flowsTo 
 		for(Vertex source : this) {
 			for(Vertex sink : this) {

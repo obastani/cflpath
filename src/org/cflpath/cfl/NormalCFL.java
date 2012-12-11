@@ -8,6 +8,7 @@ import org.cflpath.cfl.Production.EmptyProduction;
 import org.cflpath.cfl.Production.PairProduction;
 import org.cflpath.cfl.Production.SingleProduction;
 import org.cflpath.utility.MultivalueMap;
+import org.cflpath.utility.Utility.Pair;
 
 public class NormalCFL {
 
@@ -17,6 +18,7 @@ public class NormalCFL {
 	private List<PairProduction> pairProductions = new ArrayList<PairProduction>();
 	
 	private MultivalueMap<Element,SingleProduction> singleProductionsByInput = new MultivalueMap<Element,SingleProduction>();
+	private MultivalueMap<Pair<Element,Element>,PairProduction> pairProductionsByInputs = new MultivalueMap<Pair<Element,Element>,PairProduction>();
 	private MultivalueMap<Element,PairProduction> pairProductionsByFirstInput = new MultivalueMap<Element,PairProduction>();
 	private MultivalueMap<Element,PairProduction> pairProductionsBySecondInput = new MultivalueMap<Element,PairProduction>();
 	
@@ -37,7 +39,7 @@ public class NormalCFL {
 	
 	public List<SingleProduction> getSingleProductionsByInput(Element input) {
 		return this.singleProductionsByInput.get(input);
-	}	
+	}
 	
 	public List<SingleProduction> getSingleProductions() {
 		return this.singleProductions;
@@ -46,6 +48,7 @@ public class NormalCFL {
 	public void add(PairProduction pairProduction) {
 		this.cfl.add(pairProduction);
 		this.pairProductions.add(pairProduction);
+		this.pairProductionsByInputs.add(new Pair<Element,Element>(pairProduction.getFirstInput(), pairProduction.getSecondInput()), pairProduction);
 		this.pairProductionsByFirstInput.add(pairProduction.getFirstInput(), pairProduction);
 		this.pairProductionsBySecondInput.add(pairProduction.getSecondInput(), pairProduction);
 	}
