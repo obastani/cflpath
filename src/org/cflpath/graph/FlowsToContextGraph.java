@@ -116,7 +116,9 @@ public class FlowsToContextGraph extends CFLGraph {
 			super.addEdge(arg, temp_method, this.assign);
 			super.addEdge(temp_method, arg, this.assign);
 		}
-		super.addEdge(temp_method, ret, this.assign);
+		if(ret != null) {
+			super.addEdge(temp_method, ret, this.assign);
+		}
 	}
 	
 	public NormalCFL getFlowsToCFL() {

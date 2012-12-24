@@ -1,19 +1,20 @@
 package org.cflpath.main;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.cflpath.cfl.CFL;
+import org.cflpath.cfl.CFL.Path;
+import org.cflpath.cfl.Element;
 import org.cflpath.cfl.Element.Terminal;
 import org.cflpath.cfl.Element.Variable;
 import org.cflpath.cfl.Production;
 import org.cflpath.cfl.Production.PairProduction;
 import org.cflpath.cfl.Production.SingleProduction;
-import org.cflpath.graph.CFLGraph.Edge;
 import org.cflpath.graph.CFLGraph.Vertex;
 import org.cflpath.graph.FlowsToContextGraph;
 import org.cflpath.utility.MultivalueMap;
@@ -23,6 +24,10 @@ public class Main {
 	public static CFL getInput(BufferedReader input) throws IOException {
 		// graph
 		FlowsToContextGraph graph = new FlowsToContextGraph();
+		
+		// stub method arguments
+		MultivalueMap<String,Vertex> methodArgs = new MultivalueMap<String,Vertex>();
+		Map<String,Vertex> methodRet = new HashMap<String,Vertex>();
 		
 		String line;
 		while((line = input.readLine()) != null) {
@@ -52,13 +57,20 @@ public class Main {
 					String method = tokens[2].substring(5);
 					graph.addMethod(method);
 					label = graph.getExit(method);
+				} else if(tokens[2].startsWith("stubarg")) {
+					//graph.addMethod(tokens[1]);
+					methodArgs.add(tokens[1], new Vertex(tokens[0]));
+					label = null;
+				} else if(tokens[2].startsWith("stubret")) {
+					methodRet.put(tokens[1], new Vertex(tokens[0]));
+					label = null;
 				}
-				graph.addEdge(source, sink, label);
+				if(label != null) {
+					graph.addEdge(source, sink, label);
+				}
 			}
 		}
-		
-		MultivalueMap<String,Vertex> methodArgs = new MultivalueMap<String,Vertex>();
-		HashMap<String,Vertex> methodRet = new HashMap<String,Vertex>();
+		/*
 		for(Vertex vertex : graph) {
 			String name = vertex.getName();
 			if(name.startsWith("$PARAM$STUB")) {
@@ -71,12 +83,14 @@ public class Main {
 				}
 			}
 		}
+		*/
 		for(String methodName : methodArgs.keySet()) {
 			graph.addStubMethod(methodArgs.get(methodName), methodRet.get(methodName), methodName);
 		}
 		
 		// CFL REACHABILITY
 		//System.out.println(graph.getFlowsToCFL());
+		/*
 		PrintWriter pw = new PrintWriter(new File("output.txt"));
 		graph.addProductions(graph.getFlowsToCFL());
 		for(Edge edge : graph.getEdges()) {
@@ -85,7 +99,7 @@ public class Main {
 			}
 		}
 		pw.close();
-				
+		*/
 		//System.out.println(graph);
 		//System.out.println(graph.getFlowsToCFL());
 		return graph.getFlowsToGraphCFL();
@@ -153,18 +167,19 @@ public class Main {
 		*/
 		long time = System.currentTimeMillis();
 		try {
-			//CFL graphCfl = getInput(new BufferedReader(new FileReader("input.txt")));
-			/*CFL graphCfl = */getInput(new BufferedReader(new FileReader("cfl.reps")));
+			//CFL graphCfl = getInput(new BufferedReader(new FileReader("test.txt")));
+			CFL graphCfl = getInput(new BufferedReader(new FileReader("cfl.reps")));
 			//CFL graphCfl = getSimpleCFLGraph();
 			//System.out.println(graphCfl);
-			/*
+			
 			Map<Element,Path> shortestPaths = graphCfl.getShortestPaths();
+			PrintWriter pw = new PrintWriter("output.txt");
 			for(Map.Entry<Element,Path> entry : shortestPaths.entrySet()) {
 				if(entry.getKey().getName().startsWith("flowsTo(")) {
-					System.out.println("element: " + entry.getKey().getName() + ", weight: " + entry.getValue().getWeight());
+					pw.println(entry.getKey().getName() + ", weight: " + entry.getValue().getWeight());
 				}
 			}
-			*/			
+			pw.close();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
