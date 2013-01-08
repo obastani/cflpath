@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename type &apos;org.cflpath.graph.ContextGraph&apos; to &apos;FlowsToContextGraph&apos;&#x0D;&#x0A;- Original project: &apos;CFLPath&apos;&#x0D;&#x0A;- Original element: &apos;org.cflpath.graph.ContextGraph&apos;&#x0D;&#x0A;- Renamed element: &apos;org.cflpath.graph.FlowsToContextGraph&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" description="Rename type &apos;ContextGraph&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.type" input="/src&lt;org.cflpath.graph{ContextGraph.java[ContextGraph" matchStrategy="1" name="FlowsToContextGraph" qualified="false" references="true" similarDeclarations="false" stamp="1354219970309" textual="false" version="1.0"/>
+</session>

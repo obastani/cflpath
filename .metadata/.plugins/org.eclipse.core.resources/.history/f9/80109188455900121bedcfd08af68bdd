@@ -1,0 +1,6 @@
+package org.cflgraph.cfl;
+
+import org.cflgraph.cfl.Element.Variable;
+
+public abstract class Production {}
+

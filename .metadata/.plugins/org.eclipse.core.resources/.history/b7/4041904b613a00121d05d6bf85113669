@@ -1,0 +1,38 @@
+package org.cflpath.graph;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.cflpath.cfl.Element.Terminal;
+import org.cflpath.cfl.Element.Variable;
+import org.cflpath.cfl.NormalCFL;
+import org.cflpath.cfl.Production.GeneralProduction;
+
+public class FlowsToContextGraph extends CFLGraph {
+	private static final long serialVersionUID = 1L;
+
+	private Set<String> references = new HashSet<String>();
+	private Set<String> methods = new HashSet<String>();
+	
+	private Variable S = new Variable("S");
+	private Terminal enter_(String method) { return new Terminal("enter_" + method, 0.0); }
+	private Terminal exit_(String method) { return new Terminal("exit_" + method, 0.0); }
+
+	public void addReference(String reference) {
+		this.references.add(reference);
+	}
+	
+	public void addMethod(String method) {
+		this.methods.add(method);
+	}
+	
+	public NormalCFL getContextCFL() {
+		NormalCFL cfl = new NormalCFL();
+		for(String method : this.methods) {
+			cfl.add(new GeneralProduction(this.S, this.enter_(method), this.exit_(method)));
+			cfl.add(new GeneralProduction(this.S, this.enter_(method), this.S, this.exit_(method)));
+			cfl.add(new GeneralProduction(this.S, this.S, this.S));
+		}
+		return cfl;
+	}
+}

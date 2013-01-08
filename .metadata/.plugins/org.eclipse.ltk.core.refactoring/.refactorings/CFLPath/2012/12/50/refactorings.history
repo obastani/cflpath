@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename method &apos;org.cflpath.graph.FlowsToContextGraph.getFlowsToCFL()&apos; to &apos;getAugmentedFlowsToCFL&apos;&#x0D;&#x0A;- Original project: &apos;CFLPath&apos;&#x0D;&#x0A;- Original element: &apos;org.cflpath.graph.FlowsToContextGraph.getFlowsToCFL()&apos;&#x0D;&#x0A;- Renamed element: &apos;org.cflpath.graph.FlowsToContextGraph.getAugmentedFlowsToCFL()&apos;&#x0D;&#x0A;- Update references to refactored element" delegate="false" deprecate="true" description="Rename method &apos;getFlowsToCFL&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.method" input="/src&lt;org.cflpath.graph{FlowsToContextGraph.java[FlowsToContextGraph~getFlowsToCFL" name="getAugmentedFlowsToCFL" references="true" stamp="1355192201725" version="1.0"/>
+</session>

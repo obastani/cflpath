@@ -1,0 +1,102 @@
+package org.cflgraph.cfl;
+
+import java.util.ArrayList;
+
+import org.cflgraph.cfl.Element.Variable;
+
+public abstract class Production {
+	public static class SingleProduction {
+		private Variable target;
+		private Element input;
+		
+		public SingleProduction(Variable target, Element input) {
+			this.target = target;
+			this.input = input;
+		}
+		
+		public Variable getTarget() {
+			return this.target;
+		}
+		
+		public Element getInput() {
+			return this.input;
+		}
+
+
+		@Override
+		public String toString() {
+			return this.target.toString() + " -> (" + this.firstInput.toString() + "," + this.secondInput.toString() + ")";
+		}
+	}
+
+	public static class PairProduction {
+		private Variable target;
+		
+		private Element firstInput;
+		private Element secondInput;
+		
+		public PairProduction(Variable target, Element firstInput, Element secondInput) {
+			this.target = target;
+			this.firstInput = firstInput;
+			this.secondInput = secondInput;
+		}
+		
+		public Variable getTarget() {
+			return this.target;
+		}
+		
+		public Element getFirstInput() {
+			return this.firstInput;
+		}
+		
+		public Element getSecondInput() {
+			return this.secondInput;
+		}
+
+		@Override
+		public String toString() {
+			return this.target.toString() + " -> (" + this.firstInput.toString() + "," + this.secondInput.toString() + ")";
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ ((firstInput == null) ? 0 : firstInput.hashCode());
+			result = prime * result
+					+ ((secondInput == null) ? 0 : secondInput.hashCode());
+			result = prime * result
+					+ ((target == null) ? 0 : target.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			PairProduction other = (PairProduction) obj;
+			if (firstInput == null) {
+				if (other.firstInput != null)
+					return false;
+			} else if (!firstInput.equals(other.firstInput))
+				return false;
+			if (secondInput == null) {
+				if (other.secondInput != null)
+					return false;
+			} else if (!secondInput.equals(other.secondInput))
+				return false;
+			if (target == null) {
+				if (other.target != null)
+					return false;
+			} else if (!target.equals(other.target))
+				return false;
+			return true;
+		}
+	}
+}
+

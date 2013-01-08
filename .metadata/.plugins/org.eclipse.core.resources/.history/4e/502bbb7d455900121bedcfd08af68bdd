@@ -1,0 +1,50 @@
+package org.cflgraph.cfl;
+
+import java.util.Set;
+
+import org.cflgraph.cfl.Production.PairProduction;
+import org.cflgraph.cfl.Production.SingleProduction;
+import org.cflpath.utility.Utility.MultivalueMap;
+
+public class NormalCFL {
+	private MultivalueMap<Element,SingleProduction> singleProductionsByInput = new MultivalueMap<Element,SingleProduction>();
+	private MultivalueMap<Element,PairProduction> pairProductionsByFirstInput = new MultivalueMap<Element,PairProduction>();
+	private MultivalueMap<Element,PairProduction> pairProductionsBySecondInput = new MultivalueMap<Element,PairProduction>();
+	
+	public void add(SingleProduction singleProduction) {
+		this.singleProductionsByInput.add(singleProduction.getInput(), singleProduction);
+	}
+	
+	public Set<SingleProduction> getSingleProductionsByInput(Element input) {
+		return this.singleProductionsByInput.get(input);
+	}
+	
+	public void add(PairProduction pairProduction) {
+		this.pairProductionsByFirstInput.add(pairProduction.getFirstInput(), pairProduction);
+		this.pairProductionsBySecondInput.add(pairProduction.getSecondInput(), pairProduction);
+	}
+	
+	public Set<PairProduction> getPairProductionsByFirstInput(Element input) {
+		return this.pairProductionsByFirstInput.get(input);
+	}
+	
+	public Set<PairProduction> getPairProductionsBySecondInput(Element input) {
+		return this.pairProductionsBySecondInput.get(input);
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder result = new StringBuilder();
+		for(Set<SingleProduction> singleProductions : this.singleProductionsByInput.values()) {
+			for(SingleProduction singleProduction : singleProductions) {
+				result.append(singleProduction.toString()+"\n");
+			}
+		}
+		for(Set<PairProduction> pairProductions : this.pairProductionsByFirstInput.values()) {
+			for(PairProduction pairProduction : pairProductions) {
+				result.append(pairProduction.toString()+"\n");
+			}
+		}
+		return result.toString();
+	}
+}

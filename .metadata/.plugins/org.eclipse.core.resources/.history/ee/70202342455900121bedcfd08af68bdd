@@ -1,0 +1,60 @@
+package org.cflgraph.cfl;
+
+import java.util.ArrayList;
+
+import org.cflgraph.cfl.Element.Variable;
+
+public abstract class Production {
+	public static class SingleProduction {
+		private Variable target;
+		private Element input;
+		
+		public SingleProduction(Variable target, Element input) {
+			this.target = target;
+			this.input = input;
+		}
+		
+		public Variable getTarget() {
+			return this.target;
+		}
+		
+		public Element getInput() {
+			return this.input;
+		}
+		
+		public boolean matches(Element input) {
+			return this.input.equals(input);
+		}
+	}
+
+	public static class PairProduction {
+		private Variable target;
+		
+		private Element firstInput;
+		private Element secondInput;
+		
+		public PairProduction(Variable target, Element firstInput, Element secondInput) {
+			this.target = target;
+			this.firstInput = firstInput;
+			this.secondInput = secondInput;
+		}
+		
+		public Variable getTarget() {
+			return this.target;
+		}
+		
+		public Element getFirstInput() {
+			return this.firstInput;
+		}
+		
+		public Element getSecondInput() {
+			return this.secondInput;
+		}
+
+		@Override
+		public String toString() {
+			return this.target.toString() + " -> (" + this.firstInput.toString() + "," + this.secondInput.toString() + ")";
+		}
+	}
+}
+

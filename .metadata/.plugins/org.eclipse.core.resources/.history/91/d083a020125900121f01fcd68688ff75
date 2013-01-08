@@ -1,0 +1,92 @@
+package org.cflpath.cfl;
+
+import java.util.Set;
+
+import org.cflpath.utility.Factory;
+import org.cflpath.utility.Utility.MultivalueMap;
+
+public class NormalCFL {
+	public Factory<String> elementFactory = new Factory<String>();
+	
+	public static class BinaryProduction {
+		private int output;
+		private int firstInput;
+		private int secondInput;
+		
+		public BinaryProduction(int output, int firstInput, int secondInput) {
+			this.output = output;
+			this.firstInput = firstInput;
+			this.secondInput = secondInput;
+		}
+		
+		public int getOutput() { return this.output; }		
+		public int getFirstInput() { return this.firstInput; }		
+		public int getSecondInput() { return this.secondInput; }
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + firstInput;
+			result = prime * result + output;
+			result = prime * result + secondInput;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			BinaryProduction other = (BinaryProduction) obj;
+			if (firstInput != other.firstInput)
+				return false;
+			if (output != other.output)
+				return false;
+			if (secondInput != other.secondInput)
+				return false;
+			return true;
+		}
+	}
+	
+	public static class UnaryProduction {
+		private int output;
+		private int input;
+		
+		public UnaryProduction(int output, int input) {
+			this.output = output;
+			this.input = input;
+		}
+		
+		public int getOutput() { return this.output; }
+		public int getInput() { return this.input; }
+	}
+	
+	private MultivalueMap<Integer,UnaryProduction> singleProductionsByInput = new MultivalueMap<Integer,UnaryProduction>();
+	private MultivalueMap<Integer,BinaryProduction> binaryProductionsByFirstInput = new MultivalueMap<Integer,BinaryProduction>();
+	private MultivalueMap<Integer,BinaryProduction> binaryProductionsBySecondInput = new MultivalueMap<Integer,BinaryProduction>();
+	
+	public void addSingleProduction(UnaryProduction singleProduction) {
+		this.singleProductionsByInput.add(singleProduction.getInput(), singleProduction);
+	}
+	
+	public Set<UnaryProduction> getSingleProductionsByInput(int element) {
+		return this.singleProductionsByInput.get(element);
+	}
+	
+	public void addBinaryProduction(BinaryProduction binaryProduction) {
+		this.binaryProductionsByFirstInput.add(binaryProduction.getFirstInput(), binaryProduction);
+		this.binaryProductionsBySecondInput.add(binaryProduction.getSecondInput(), binaryProduction);
+	}
+	
+	public Set<BinaryProduction> getBinaryProductionsByFirstInput(int element) {
+		return this.binaryProductionsByFirstInput.get(element);
+	}
+	
+	public Set<BinaryProduction> getBinaryProductionsBySecondInput(int element) {
+		return this.binaryProductionsBySecondInput.get(element);
+	}
+}

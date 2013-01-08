@@ -1,0 +1,59 @@
+package org.cflpath.cfl;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.cflpath.utility.Factory;
+import org.cflpath.utility.Utility.MultivalueMap;
+
+public class NormalCFL {
+	public Factory<String> elementFactory = new Factory<String>();
+	
+	public static class BinaryProduction {
+		private int output;
+		private int firstInput;
+		private int secondInput;
+		
+		public BinaryProduction(int output, int firstInput, int secondInput) {
+			this.output = output;
+			this.firstInput = firstInput;
+			this.secondInput = secondInput;
+		}
+		
+		public int getOutput() { return this.output; }		
+		public int getFirstInput() { return this.firstInput; }		
+		public int getSecondInput() { return this.secondInput; }
+	}
+	
+	public static class SingleProduction {
+		private int output;
+		private int input;
+		
+		public SingleProduction(int output, int input) {
+			this.output = output;
+			this.input = input;
+		}
+		
+		public int getOutput() { return this.output; }
+		public int getInput() { return this.input; }
+	}
+	
+	private MultivalueMap<Integer,SingleProduction> singleProductionsByInput = new MultivalueMap<Integer,SingleProduction>();
+	private MultivalueMap<Integer,BinaryProduction> binaryProductions = new MultivalueMap<BinaryProduction>();
+	
+	public void addSingleProduction(SingleProduction singleProduction) {
+		this.singleProductions.add(singleProduction);
+	}
+	
+	public Set<SingleProduction> getSingleProductions() {
+		return this.singleProductions;
+	}
+	
+	public void addBinaryProduction(BinaryProduction binaryProduction) {
+		this.binaryProductions.add(binaryProduction);
+	}
+	
+	public Set<BinaryProduction> getBinaryProductions() {
+		return this.binaryProductions;
+	}
+}

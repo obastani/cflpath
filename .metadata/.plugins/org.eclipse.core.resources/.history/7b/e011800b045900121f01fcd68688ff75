@@ -1,0 +1,84 @@
+package org.cflpath.cfl;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.cflpath.utility.Factory;
+import org.cflpath.utility.MultivalueMap;
+import org.cflpath.utility.Utility.WeightMap;
+
+public class CFLGraph extends HashSet<Integer> {
+	private static final long serialVersionUID = 1L;
+	
+	private Factory<String> elementFactory = new Factory<String>();
+	private Factory<String> vertexFactory = new Factory<String>();
+	private WeightMap<Integer> elementWeights = new WeightMap<Integer>();
+	
+	private class Edge {
+		private int source;
+		private int sink;
+		
+		private int element;
+		
+		public Edge(int source, int sink, int element) {
+			this.source = source;
+			this.sink = sink;
+			this.element = element;
+		}
+		
+		public int getSource() {
+			return this.source;
+		}
+		
+		public int getSink() {
+			return this.sink;
+		}
+		
+		public int getElement() {
+			return this.element;
+		}
+		
+		@Override
+		public String toString() {
+			return "(" + vertexFactory.getElementById(this.source) + ","
+					+ vertexFactory.getElementById(this.sink) + ","
+					+ elementFactory.getElementById(this.element) + ")";
+		}
+	}
+	
+	private Set<Edge> edges = new HashSet<Edge>();
+	private MultivalueMap<Integer,Edge> incomingEdges = new MultivalueMap<Integer,Edge>();
+	private MultivalueMap<Integer,Edge> outgoingEdges = new MultivalueMap<Integer,Edge>();
+	
+	public MultivalueMap<Integer,Edge> getIncomingEdges() {
+		return this.incomingEdges;
+	}
+	
+	public MultivalueMap<Integer,Edge> getOutgoingEdges() {
+		return this.outgoingEdges;
+	}
+	
+	public Edge addEdge(int source, int sink, int element) {
+		super.add(source);
+		super.add(sink);
+		
+		Edge edge = new Edge(source, sink, element);
+
+		this.outgoingEdges.add(source, edge);
+		this.incomingEdges.add(sink, edge);
+		
+		return this.edges.add(edge) ? edge : null;
+	}
+	
+	public Set<Edge> getEdges() {
+		return this.edges;
+	}
+			
+	public String toString() {
+		StringBuilder result = new StringBuilder();
+		for(Edge edge : this.edges) {
+			result.append(edge.toString()+"\n");
+		}
+		return result.toString();
+	}
+}

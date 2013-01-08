@@ -1,0 +1,16 @@
+INDEX VERSION 1.126+C:\Users\obastani\Dropbox\Files\Projects\Research\Program Analysis (Stanford 2012)\Context Free Languages\CFLPath\.metadata\.plugins\org.eclipse.jdt.core
+3974580528.index
+1995173708.index
+305854171.index
+1933314036.index
+30765161.index
+3065916431.index
+3133528496.index
+1115467115.index
+573543369.index
+163172794.index
+3697864976.index
+1697886153.index
+4155206848.index
+2224698451.index
+1498219845.index

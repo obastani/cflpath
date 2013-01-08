@@ -1,0 +1,409 @@
+package org.cflpath.cfl;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.cflpath.utility.Factory;
+import org.cflpath.utility.Utility.Heap;
+import org.cflpath.utility.Utility.MultivalueMap;
+import org.cflpath.utility.Utility.Pair;
+
+public class CFLGraph {
+	private static final long serialVersionUID = 1L;
+	
+	private Factory<String> vertices = new Factory<String>();
+
+	// Pair<Vertex,Vertex>,Terminal
+	private MultivalueMap<Pair<Integer,Integer>,Integer> edges = new MultivalueMap<Pair<Integer,Integer>,Integer>();
+	// Vertex,Pair<Vertex,Terminal>
+	private MultivalueMap<Integer,Pair<Integer,Integer>> incomingEdges = new MultivalueMap<Integer,Pair<Integer,Integer>>();
+	private MultivalueMap<Integer,Pair<Integer,Integer>> outgoingEdges = new MultivalueMap<Integer,Pair<Integer,Integer>>();
+	
+	public void addEdge(Vertex source, Vertex sink, Terminal terminal) {
+		super.add(source);
+		super.add(sink);
+
+		this.edges.add(new Pair<Vertex,Vertex>(source,sink), terminal);
+		this.incomingEdges.add(sink, new Pair<Vertex,Terminal>(source,terminal));
+		this.outgoingEdges.add(source, new Pair<Vertex,Terminal>(sink,terminal));
+	}
+
+	public static class Path {
+		private LinkedList<Pair<Vertex,Terminal>> pairs = new LinkedList<Pair<Vertex,Terminal>>();
+		private Vertex start;
+		private int weight;
+		
+		public Path() {
+			this.weight = 0;
+		}
+		
+		@SafeVarargs
+		public Path(Vertex start, Pair<Vertex,Terminal> ... pairs) {
+			this.weight = 0;
+			this.start = start;
+			for(Pair<Vertex,Terminal> pair : pairs) {
+				this.add(pair);
+			}
+		}
+		
+		public Path(Path ... paths) {
+			this.weight = 0;
+			this.start = paths.length > 0 ? paths[0].getStart() : null;
+			for(Path path : paths) {
+				this.add(path);
+			}
+		}
+		
+		public void add(Pair<Vertex,Terminal> pair) {
+			this.pairs.add(pair);
+			this.weight += pair.getY().getWeight();
+		}
+		
+		public void add(Path path) {
+			this.pairs.addAll(path.getPairs());
+			this.weight += path.getWeight();
+		}
+		
+		public List<Pair<Vertex,Terminal>> getPairs() {
+			return this.pairs;
+		}
+		
+		public Vertex getStart() {
+			return this.start;
+		}
+		
+		public int getWeight() {
+			return this.weight;
+		}
+		
+		public Path reverse() {
+			
+			Path reversePath = null;
+			Terminal prevTerminal = null;
+			
+			boolean last = true;
+			for(Iterator<Pair<Vertex,Terminal>> iter = this.pairs.descendingIterator(); iter.hasNext();) {
+				Pair<Vertex,Terminal> pair = iter.next();
+				
+				if(last) {
+					reversePath = new Path(pair.getX());
+					last = false;
+				} else {
+					reversePath.add(new Pair<Vertex,Terminal>(pair.getX(), prevTerminal));
+				}
+				prevTerminal = pair.getY();
+			}
+			
+			reversePath.add(new Pair<Vertex,Terminal>(this.start, prevTerminal));
+			
+			return reversePath;
+		}
+	}
+	
+	public static class GraphElement {
+		private Vertex source;
+		private Vertex sink;
+		private Element element;
+		
+		public GraphElement(Vertex source, Vertex sink, Element element) {
+			this.source = source;
+			this.sink = sink;
+			this.element = element;
+		}
+		
+		public Vertex getSource() {
+			return this.source;
+		}
+		
+		public Vertex getSink() {
+			return this.sink;
+		}
+		
+		public Element getElement() {
+			return this.element;
+		}
+		
+		@Override
+		public int hashCode() {
+			return 37*(17*this.source.hashCode() + this.sink.hashCode()) + this.element.hashCode();
+		}
+		
+		@Override
+		public boolean equals(Object object) {
+			if(this == object) {
+				return true;
+			} else if(object == null || this.getClass() != object.getClass()) {
+				return false;
+			} else {
+				GraphElement graphElement = (GraphElement)object;
+				return this.source.equals(graphElement.getSource())
+						&& this.sink.equals(graphElement.getSink())
+						&& this.element.equals(graphElement.getElement());
+			}		
+		}
+		
+		@Override
+		public String toString() {
+			return this.element.getName() + "(" + this.source.getName() + "," + this.sink.getName() + ")"; 
+		}
+	}
+	
+	// run Knuth's algorithms
+	public Map<GraphElement,Path> getShortestPaths(NormalCFL cfl) {
+
+		// maps from the minimum graph elements to their paths
+		Map<GraphElement,Path> minGraphElementPaths = new HashMap<GraphElement,Path>();
+		MultivalueMap<Pair<Vertex,Element>,Pair<Vertex,Path>> minGraphElementPathsBySource = new MultivalueMap<Pair<Vertex,Element>,Pair<Vertex,Path>>();
+		MultivalueMap<Pair<Vertex,Element>,Pair<Vertex,Path>> minGraphElementPathsBySink = new MultivalueMap<Pair<Vertex,Element>,Pair<Vertex,Path>>();
+
+		Map<GraphElement,Path> curMinGraphElementPaths = new HashMap<GraphElement,Path>(); // stores the current minimum element paths
+		Heap<GraphElement> curMinGraphElementQueue = new Heap<GraphElement>(); // stores the current minimum graph elements left to be processed		
+
+		// step 1: fill in minGraphElementPaths and minGraphElementQueue with the initial terminals
+		for(Vertex source : this) {
+			for(Pair<Vertex,Terminal> pair : this.outgoingEdges.get(source)) {
+				GraphElement element = new GraphElement(source, pair.getX(), pair.getY());
+				curMinGraphElementPaths.put(element, new Path(source, pair));
+				curMinGraphElementQueue.push(element, pair.getY().getWeight());
+			}
+		}
+
+		// step 2: for each element in minGraphElementQueue, iterate through productions and check if they are smaller
+		int i=0;
+		while(!curMinGraphElementQueue.isEmpty()) {
+
+		    // step 2a: get the minimum element
+		    GraphElement minElement = curMinGraphElementQueue.pop();
+		    
+		    // TODO: remove printing
+		    if(i%10000 == 0) {
+		    	System.out.println("Current iteration: " + i);
+		    	System.out.println("Current heap size: " + curMinGraphElementQueue.size());
+		    }
+		    i++;
+
+		    // step 2b: add the minimum element to the map
+		    Path minPath = curMinGraphElementPaths.get(minElement);
+		    minGraphElementPaths.put(minElement, minPath);
+		    minGraphElementPathsBySource.add(new Pair<Vertex,Element>(minElement.getSource(),minElement.getElement()), new Pair<Vertex,Path>(minElement.getSink(),minPath));
+		    minGraphElementPathsBySink.add(new Pair<Vertex,Element>(minElement.getSink(),minElement.getElement()), new Pair<Vertex,Path>(minElement.getSource(),minPath));
+		    
+		    // TODO: fix temporary hack
+		    if(minElement.getElement().equals(new Variable("flowsTo"))) {
+		    	GraphElement barElement = new GraphElement(minElement.getSink(), minElement.getSource(), new Variable("flowsToBar"));
+		    	Path barPath = minPath.reverse();
+			    minGraphElementPaths.put(barElement, barPath);
+			    minGraphElementPathsBySource.add(new Pair<Vertex,Element>(barElement.getSource(),barElement.getElement()), new Pair<Vertex,Path>(barElement.getSink(),barPath));
+			    minGraphElementPathsBySink.add(new Pair<Vertex,Element>(barElement.getSink(),barElement.getElement()), new Pair<Vertex,Path>(barElement.getSource(),barPath));		    	
+		    }
+		    
+		    // step 2c: update the minimum path for all single productions using that element
+		    for(SingleProduction singleProduction : cfl.getSingleProductionsByInput(minElement.getElement())) {
+		    	GraphElement curElement = new GraphElement(minElement.getSource(), minElement.getSink(), singleProduction.getTarget());
+		    	
+		        Path curPath = curMinGraphElementPaths.get(curElement);
+		        Path newPath = minGraphElementPaths.get(minElement);
+
+		        if(curPath == null || newPath.getWeight() < curPath.getWeight()) {
+		            curMinGraphElementQueue.update(curElement, newPath.getWeight());
+		            curMinGraphElementPaths.put(curElement, newPath);
+		        }
+		    }
+
+		    // step 2d: update the minimum path for all pair productions using that element as the first input
+		    for(PairProduction pairProduction : cfl.getPairProductionsByFirstInput(minElement.getElement())) {
+		    	for(Pair<Vertex,Path> pair : minGraphElementPathsBySource.get(new Pair<Vertex,Element>(minElement.getSink(), pairProduction.getSecondInput()))) {
+		    		Path secondPath = minGraphElementPaths.get(new GraphElement(minElement.getSink(), pair.getX(), pairProduction.getSecondInput()));
+		    		if(secondPath != null) {
+		    			GraphElement curElement = new GraphElement(minElement.getSource(), pair.getX(), pairProduction.getTarget());
+			    		
+		    			Path curPath = curMinGraphElementPaths.get(curElement);
+		    			Path newPath = new Path(minGraphElementPaths.get(minElement), secondPath);
+		    			
+		    			if(curPath == null || newPath.getWeight() < curPath.getWeight()) {
+		    				curMinGraphElementQueue.update(curElement, newPath.getWeight());
+		    				curMinGraphElementPaths.put(curElement, newPath);
+		    			}
+		    		}
+		    	}
+		    }
+
+		    // step 2e: update the minimum path for all pair productions using that element as the second input
+		    for(PairProduction pairProduction : cfl.getPairProductionsBySecondInput(minElement.getElement())) {
+		    	for(Pair<Vertex,Path> pair : minGraphElementPathsBySink.get(new Pair<Vertex,Element>(minElement.getSource(), pairProduction.getFirstInput()))) {
+		    		Path firstPath = minGraphElementPaths.get(new GraphElement(pair.getX(), minElement.getSource(), pairProduction.getFirstInput()));
+		    		if(firstPath != null) {
+		    			GraphElement curElement = new GraphElement(pair.getX(), minElement.getSink(), pairProduction.getTarget());
+			    		
+		    			Path curPath = curMinGraphElementPaths.get(curElement);
+		    			Path newPath = new Path(firstPath, minGraphElementPaths.get(minElement));
+		    			
+		    			if(curPath == null || newPath.getWeight() < curPath.getWeight()) {
+		    				curMinGraphElementQueue.update(curElement, newPath.getWeight());
+		    				curMinGraphElementPaths.put(curElement, newPath);
+		    			}
+		    		}
+		    	}
+		    }
+
+		}
+		
+		return curMinGraphElementPaths;
+
+		/*
+		// map from confirmed elements to weights
+		Map<GraphElement,Path> minPaths = new HashMap<GraphElement,Path>();
+		
+		// map from temporary elements to weights
+		MultivalueMap<Pair<Vertex,Vertex>,Element> curMinElements = new MultivalueMap<Pair<Vertex,Vertex>,Element>();
+		MultivalueMap<Vertex,Pair<Vertex,Element>> curMinElementsByFirstVertex = new MultivalueMap<Vertex,Pair<Vertex,Element>>();
+		MultivalueMap<Vertex,Pair<Vertex,Element>> curMinElementsBySecondVertex = new MultivalueMap<Vertex,Pair<Vertex,Element>>();
+
+		Map<GraphElement,Path> curMinPaths = new HashMap<GraphElement,Path>();
+		
+		// priority queue of minimal elements to consider
+		Heap<GraphElement> curMinPathLengths = new Heap<GraphElement>();
+		
+		// fill in the current paths and the lengths
+		for(Vertex source : this) {
+			for(Pair<Vertex,Terminal> pair : this.outgoingEdges.get(source)) {
+				curMinElements.add(new Pair<Vertex,Vertex>(source,pair.getX()), pair.getY());
+				curMinElementsByFirstVertex.add(source, new Pair<Vertex,Element>(pair.getX(), pair.getY()));
+				curMinElementsByFirstVertex.add(pair.getX(), new Pair<Vertex,Element>(source, pair.getY()));
+				
+				GraphElement element = new GraphElement(source, pair.getX(), pair.getY());
+				curMinPaths.put(element, new Path(source, pair));
+				curMinPathLengths.push(element, pair.getY().getWeight());
+			}
+		}
+		
+		while(curMinPathLengths.size() > 0) {
+			GraphElement minElement = curMinPathLengths.pop();
+			for(Element element : curMinElements.get(new Pair<Vertex,Vertex>(minElement.getX(), minElement.getY()))) {
+				for(SingleProduction singleProduction : cfl.getSingleProductionsByInput(element)) {
+					if(curMinPaths.get(minElement).getWeight() < curMinPaths.get(element).getWeight()) {
+						curMinPaths.put(new GraphElement(minElement.getX(), minElement.getY(), singleProduction.getTarget()), curMinPaths.get(element));
+					}
+				}
+			}
+		}
+		
+		return minPaths;
+		
+		
+		// map from elements to weights
+		HashMap<GraphElement,Path> mu = new HashMap<GraphElement,Path>();
+		
+		// map from targets to list of productions with inputs all finite
+		MultivalueMap<GraphVariable,GraphSingleProduction> finiteSingleProductions = new MultivalueMap<GraphVariable,GraphSingleProduction>();
+		MultivalueMap<GraphVariable,GraphPairProduction> finitePairProductions = new MultivalueMap<GraphVariable,GraphPairProduction>();
+		
+		// add the set of terminals and their weights
+		for(Vertex source : this) {
+			for(Vertex sink : this) {
+				for(Terminal terminal : cfl.getTerminals()) {
+					//mu.put(terminal, terminal.getWeight());
+					mu.put(new GraphElement(source,sink,terminal), new Path(terminal));
+				}				
+			}
+		}
+		
+		// add the initial set of variables that have finite lengths
+		for(Map.Entry<Vertex,Set<Pair<Vertex,Terminal>>> entry : this.outgoingEdges.entrySet()) {
+			for(Pair<Vertex,Terminal> pair : entry.getValue()) {
+				for(SingleProduction singleProduction : cfl.getSingleProductionsByInput(pair.getY())) {
+					finiteSingleProductions.add(new GraphVariable(entry.getKey(),pair.getX(),singleProduction.getTarget()), new GraphSingleProduction(entry.getKey(),pair.getX(),singleProduction));					
+				}
+				for(PairProduction pairProduction : cfl.getPairProductionsByFirstInput(pair.getY())) {
+					for(Pair<Vertex,Terminal> secondPair : this.outgoingEdges.get(pair.getX())) {
+						finitePairProductions.add(new GraphVariable(entry.getKey(),secondPair.getX(),pairProduction.getTarget()), new GraphPairProduction(entry.getKey(),secondPair.getX(),pairProduction));
+					}
+				}
+			}
+		}
+		
+		// loop through each of the variables
+		int i=0;
+		while(true) {
+			if(i%1000 == 0) System.out.println(i);
+			i++;
+			
+			// a list of the minimum length path for each element in mu that maps to null
+			Map<Variable,Path> nu = new HashMap<Variable,Path>();
+			// loop over all productions with all finite inputs that are not yet in mu
+			for(Map.Entry<Variable,Set<Production>> targetProductionList : finiteProductions.entrySet()) {
+				if(mu.get(targetProductionList.getKey()) == null) {
+					// compute the minimum length production ad add to nu
+					Path minPath = null;
+					for(Production production : targetProductionList.getValue()) {
+						Path path = new Path();
+						for(Element input : production.getInputs()) {
+							// TODO: optimize this so it links the lists directly
+							path.add(mu.get(input));
+						}
+						if(minPath == null || path.getWeight() < minPath.getWeight()) {
+							minPath = path;
+						}
+					}
+					nu.put(targetProductionList.getKey(), minPath);
+				}
+			}
+			*/
+			/*
+			for(Map.Entry<Element,Double> entry : nu.entrySet()) {
+				System.out.println(entry.getKey().getName() + " " + entry.getValue());
+			}
+			System.out.println();
+			*/
+			/*
+			// get the minimum length entry in nu
+			Map.Entry<Variable,Path> minNuEntry = null;
+			for(Map.Entry<Variable,Path> entry : nu.entrySet()) {
+				if(minNuEntry == null || entry.getValue().getWeight() < minNuEntry.getValue().getWeight()) {
+					minNuEntry = entry;
+				}
+			}
+			
+			// terminate if there are no entries in nu
+			if(minNuEntry == null) {
+				return mu;
+			}
+			
+			// add the minimum length entry to mu
+			mu.put(minNuEntry.getKey(), minNuEntry.getValue());
+			
+			// TODO: change this to iterate over single/pair productions, over all vertex pairs
+			// for each production for which the new element is an input
+			for(Production production : this.inputProductionLists.get(minNuEntry.getKey())) {
+				// check if the production has all inputs
+				boolean inputsFinite = true;
+				for(Element element : production.getInputs()) {
+					inputsFinite &= mu.get(element) != null;
+				}
+				// if so, add it to the list of finite productions
+				if(inputsFinite) {
+					finiteProductions.add(production.getTarget(), production);
+				}
+			}
+		}
+		*/
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder result = new StringBuilder();
+		for(Map.Entry<Pair<Vertex,Vertex>,Set<Terminal>> entry : this.edges.entrySet()) {
+			for(Terminal terminal : entry.getValue()) {
+				result.append("(" + entry.getKey().getX().toString() + ","
+						+ entry.getKey().getY().toString() + ","
+						+ terminal.toString() + ")" + "\n");
+			}
+		}
+		return result.toString();
+	}
+}

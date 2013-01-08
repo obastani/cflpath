@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="org.cflpath.utility.Graph.Edge"/>
+<fullyQualifiedTypeName name="org.cflpath.utility.CFL.Variable"/>
+<fullyQualifiedTypeName name="org.cflpath.utility.CFL.BaseProduction"/>
+<fullyQualifiedTypeName name="org.cflpath.utility.CFL"/>
+<fullyQualifiedTypeName name="java.util.Map"/>
+<fullyQualifiedTypeName name="org.cflpath.main.Main"/>
+<fullyQualifiedTypeName name="org.cflpath.utility.CFL.PairProduction"/>
+<fullyQualifiedTypeName name="org.cflpath.utility.CFL.Element"/>
+<fullyQualifiedTypeName name="K"/>
+<fullyQualifiedTypeName name="org.cflpath.utility.CFLGraph.Vertex"/>
+<fullyQualifiedTypeName name="org.cflpath.cfl.Production.PairProduction"/>
+<fullyQualifiedTypeName name="org.cflpath.utility.CFLGraph.Edge"/>
+<fullyQualifiedTypeName name="org.cflpath.cfl.NormalCFL"/>
+<fullyQualifiedTypeName name="java.util.LinkedList"/>
+<fullyQualifiedTypeName name="org.cflpath.graph.CFLGraph.Edge"/>
+<fullyQualifiedTypeName name="org.cflpath.cfl.Element"/>
+<fullyQualifiedTypeName name="org.cflpath.cfl.CFL.Path"/>
+<fullyQualifiedTypeName name="org.cflpath.utility.MultivalueMap"/>
+<fullyQualifiedTypeName name="org.cflpath.utility.Utility.WeightMap"/>
+<fullyQualifiedTypeName name="org.cflpath.cfl.NormalCFL.SingleProduction"/>
+<fullyQualifiedTypeName name="org.cflpath.graph.CFLGraph.Path"/>
+<fullyQualifiedTypeName name="org.cflgraph.cfl.Production.PairProduction"/>
+<fullyQualifiedTypeName name="java.util.Map.Entry"/>
+<fullyQualifiedTypeName name="java.util.List"/>
+<fullyQualifiedTypeName name="java.lang.Comparable"/>
+<fullyQualifiedTypeName name="java.util.Iterator"/>
+<fullyQualifiedTypeName name="org.cflgraph.graph.CFLGraph.Vertex"/>
+<fullyQualifiedTypeName name="org.cflpath.utility.Utility.Pair"/>
+<fullyQualifiedTypeName name="org.cflpath.cfl.FlowsToGraph"/>
+<fullyQualifiedTypeName name="org.cflpath.cfl.CFLGraph.Path"/>
+</qualifiedTypeNameHistroy>

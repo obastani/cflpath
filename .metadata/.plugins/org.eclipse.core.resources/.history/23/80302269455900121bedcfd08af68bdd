@@ -1,0 +1,132 @@
+package org.cflgraph.cfl;
+
+import java.util.Set;
+
+import org.cflgraph.cfl.Production.PairProduction;
+import org.cflgraph.cfl.Production.SingleProduction;
+import org.cflpath.utility.Utility.MultivalueMap;
+
+public class NormalCFL {
+	//private Set<Terminal> terminals = new HashSet<Terminal>();
+	
+	private MultivalueMap<Element,SingleProduction> singleProductionsByInput = new MultivalueMap<Element,SingleProduction>();
+	private MultivalueMap<Element,PairProduction> pairProductionsByFirstInput = new MultivalueMap<Element,PairProduction>();
+	private MultivalueMap<Element,PairProduction> pairProductionsBySecondInput = new MultivalueMap<Element,PairProduction>();
+	
+	/*
+	private int numProductions = 0;
+	
+	public int getNumProductions() {
+		return this.numProductions;
+	}
+	
+	public Set<Terminal> getTerminals() {
+		return this.terminals;
+	}
+	*/
+	
+	public void add(SingleProduction singleProduction) {
+		this.singleProductionsByInput.add(singleProduction.getInput(), singleProduction);
+		/*
+		if(singleProduction.getInput().isTerminal()) {
+			this.terminals.add((Terminal)singleProduction.getInput());
+		}
+		*/
+		//this.numProductions++;
+	}
+	
+	public Set<SingleProduction> getSingleProductionsByInput(Element input) {
+		return this.singleProductionsByInput.get(input);
+	}
+	
+	public void add(PairProduction pairProduction) {
+		this.pairProductionsByFirstInput.add(pairProduction.getFirstInput(), pairProduction);
+		this.pairProductionsBySecondInput.add(pairProduction.getSecondInput(), pairProduction);
+		/*
+		if(pairProduction.getFirstInput().isTerminal()) {
+			this.terminals.add((Terminal)pairProduction.getFirstInput());
+		}
+		if(pairProduction.getSecondInput().isTerminal()) {
+			this.terminals.add((Terminal)pairProduction.getSecondInput());
+		}
+		*/
+		//this.numProductions++;
+	}
+	
+	public Set<PairProduction> getPairProductionsByFirstInput(Element input) {
+		return this.pairProductionsByFirstInput.get(input);
+	}
+	
+	public Set<PairProduction> getPairProductionsBySecondInput(Element input) {
+		return this.pairProductionsBySecondInput.get(input);
+	}
+	
+	/*
+	public Set<Production> getProductions() {
+		HashSet<Production> productions = new HashSet<Production>();
+		for(Set<SingleProduction> singleProductions : this.singleProductionsByInput.values()) {
+			productions.addAll(singleProductions);
+		}
+		for(Set<PairProduction> pairProductions : this.pairProductionsByFirstInput.values()) {
+			productions.addAll(pairProductions);
+		}
+		return productions;
+	}
+	*/
+	
+	// return a list of binary productions equivalent to the given production
+	// assume the production isn't empty!
+	/*
+	public void add(Production production) {
+		switch(production.getInputs().size()) {
+		case 0:
+			this.add(new EmptyProduction(production.getTarget()));
+			break;
+	    case 1:
+	    	this.add(new SingleProduction(production.getTarget(), production.getInputs().get(0)));
+	    	break;
+	    case 2:
+	    	this.add(new PairProduction(production.getTarget(), production.getInputs().get(0), production.getInputs().get(1)));
+	    	break;
+	    default:
+	      	Element firstInput = production.getInputs().get(0);
+	     	Element secondInput = production.getInputs().get(1);
+	
+	     	//String targetString = production.getTarget() + "->" + firstInput.getName() + "^" + secondInput.getName();
+	     	String targetString = firstInput.getName() + "^" + secondInput.getName();
+	     	Variable target = new Variable(targetString);
+	     	this.add(new PairProduction(target, firstInput, secondInput));
+	
+	     	for(int i=2; i<production.getInputs().size()-1; i++) {
+	     		firstInput = target;
+	     		secondInput = production.getInputs().get(i);
+	     		targetString += "^" + secondInput.getName();
+	     		target = new Variable(targetString);
+	     		this.add(new PairProduction(target, firstInput, secondInput));
+	     	}
+	
+	     	firstInput = target;
+	     	secondInput = production.getInputs().get(production.getInputs().size()-1);
+	     	target = production.getTarget();
+	     	this.add(new PairProduction(target, firstInput, secondInput));
+	     	break;
+		}
+	}
+	*/
+	
+	@Override
+	public String toString() {
+		StringBuilder result = new StringBuilder();
+		for(Set<SingleProduction> singleProductions : this.singleProductionsByInput.values()) {
+			for(SingleProduction singleProduction : singleProductions) {
+				result.append(singleProduction.toString()+"\n");
+			}
+		}
+		for(Set<PairProduction> pairProductions : this.pairProductionsByFirstInput.values()) {
+			for(PairProduction pairProduction : pairProductions) {
+				result.append(pairProduction.toString()+"\n");
+			}
+		}
+		return result.toString();
+	}
+}

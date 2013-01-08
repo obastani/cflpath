@@ -1,0 +1,76 @@
+package org.cflpath.graph;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.cflpath.cfl.Element.Terminal;
+import org.cflpath.cfl.Element.Variable;
+import org.cflpath.cfl.NormalCFL;
+import org.cflpath.cfl.Production.GeneralProduction;
+import org.cflpath.cfl.Production.PairProduction;
+import org.cflpath.cfl.Production.SingleProduction;
+
+public class FlowsToContextGraph extends CFLGraph {
+	private static final long serialVersionUID = 1L;
+
+	private Set<String> references = new HashSet<String>();
+	private Set<String> methods = new HashSet<String>();
+	
+	private Variable T = new Variable("T");
+	private Terminal enter_(String method) { return new Terminal("enter_" + method, 0.0); }
+	private Terminal exit_(String method) { return new Terminal("exit_" + method, 0.0); }
+
+	public void addReference(String reference) {
+		this.references.add(reference);
+	}
+	
+	public void addMethod(String method) {
+		this.methods.add(method);
+	}
+	
+	public NormalCFL getFlowsToCfl() {
+		NormalCFL cfl = new NormalCFL();
+		NormalCFL normalCfl = new NormalCFL();
+
+		// add production flowsToRight -> store_* alias load_*
+		normalCfl.add(new GeneralProduction(this.store_star, this.alias, this.load_star));
+		
+		// add production flowsToRight -> assign
+		normalCfl.add(new GeneralProduction(this.flowsToRight, this.assign));
+		
+		// add production flowsToRight -> flowsToRight flowsToRight
+		normalCfl.add(new GeneralProduction(this.flowsToRight, this.flowsToRight, this.flowsToRight));
+
+		// add production flowsTo -> new
+		normalCfl.add(new GeneralProduction(this.flowsTo, this.new_terminal));
+		
+		// add production flowsTo ->  new flowsToRight
+		normalCfl.add(new GeneralProduction(this.flowsTo, this.new_terminal, this.flowsToRight));
+
+		// add production alias -> flowsToBar flowsTo
+		normalCfl.add(new GeneralProduction(this.alias, this.flowsToBar, this.flowsTo));
+		
+		for(String reference : this.references) {
+			// add production flowsToRight -> store_f alias load_f
+			normalCfl.add(new GeneralProduction(this.flowsToRight, this.store_(reference), this.alias, this.load_(reference)));
+			
+			// add production flowsToRight -> store_* alias load_f
+			normalCfl.add(new GeneralProduction(this.flowsToRight, this.store_star, this.alias, this.load_(reference));
+
+			// add production flowsToRight -> store_f alias load_*
+			normalCfl.add(new GeneralProduction(this.flowsToRight, this.store_(reference), this.alias, this.load_star);
+		}
+		
+		return cfl;
+	}
+	
+	public NormalCFL getContextCFL() {
+		NormalCFL cfl = new NormalCFL();
+		for(String method : this.methods) {
+			cfl.add(new GeneralProduction(this.T, this.enter_(method), this.exit_(method)));
+			cfl.add(new GeneralProduction(this.T, this.enter_(method), this.T, this.exit_(method)));
+			cfl.add(new GeneralProduction(this.T, this.T, this.T));
+		}
+		return cfl;
+	}
+}

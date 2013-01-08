@@ -1,0 +1,27 @@
+{
+  "C:\\Users\\obastani\\Dropbox\\Files\\Projects\\Research\\STAMP\\cfl\\CFLPath\\src": {
+    "location": "C:\\Users\\obastani\\Dropbox\\Files\\Projects\\Research\\STAMP\\cfl\\CFLPath\\src",
+    "status": "UNRESOLVED",
+    "error": "No class path info available for \u0027C:\\Users\\obastani\\Dropbox\\Files\\Projects\\Research\\STAMP\\cfl\\CFLPath\\src\u0027. Skipped."
+  },
+  "C:\\Program Files\\Java\\jre7\\lib\\rt.jar": {
+    "coordinate": "jre:jre:zip:call:1.0.0",
+    "location": "C:\\Program Files\\Java\\jre7\\lib\\rt.jar",
+    "status": "RESOLVED"
+  },
+  "C:\\Users\\obastani\\Dropbox\\Files\\Projects\\Research\\Program Analysis (Stanford 2012)\\Context Free Languages\\CFLPath\\src": {
+    "location": "C:\\Users\\obastani\\Dropbox\\Files\\Projects\\Research\\Program Analysis (Stanford 2012)\\Context Free Languages\\CFLPath\\src",
+    "status": "UNRESOLVED",
+    "error": "No class path info available for \u0027C:\\Users\\obastani\\Dropbox\\Files\\Projects\\Research\\Program Analysis (Stanford 2012)\\Context Free Languages\\CFLPath\\src\u0027. Skipped."
+  },
+  "C:\\Users\\obastani\\Dropbox\\Files\\Projects\\Research\\Program Analysis (Stanford 2012)\\Context Free Languages\\CFLPathTrim\\src": {
+    "location": "C:\\Users\\obastani\\Dropbox\\Files\\Projects\\Research\\Program Analysis (Stanford 2012)\\Context Free Languages\\CFLPathTrim\\src",
+    "status": "UNRESOLVED",
+    "error": "No class path info available for \u0027C:\\Users\\obastani\\Dropbox\\Files\\Projects\\Research\\Program Analysis (Stanford 2012)\\Context Free Languages\\CFLPathTrim\\src\u0027. Skipped."
+  },
+  "C:\\Users\\obastani\\Dropbox\\Files\\Projects\\Research\\Program Analysis (Stanford 2012)\\Context Free Languages\\CFLGraph\\src": {
+    "location": "C:\\Users\\obastani\\Dropbox\\Files\\Projects\\Research\\Program Analysis (Stanford 2012)\\Context Free Languages\\CFLGraph\\src",
+    "status": "UNRESOLVED",
+    "error": "No class path info available for \u0027C:\\Users\\obastani\\Dropbox\\Files\\Projects\\Research\\Program Analysis (Stanford 2012)\\Context Free Languages\\CFLGraph\\src\u0027. Skipped."
+  }
+}

@@ -1,0 +1,136 @@
+package org.cflpath.cfl;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.cflpath.cfl.NormalCFL.BinaryProduction;
+import org.cflpath.cfl.NormalCFL.UnaryProduction;
+
+public class FlowsToGraph extends CFLGraph {
+	private Set<String> fields = new HashSet<String>();
+	
+	// terminals
+	
+	private int new_terminal = super.elementFactory.getIdByElement("new");
+	
+	private int assign = super.elementFactory.getIdByElement("assign");
+	
+	private int store_star = super.elementFactory.getIdByElement("store_*");
+	private int store_(String field) { return super.elementFactory.getIdByElement("store_" + field); }
+	
+	private int load_star = super.elementFactory.getIdByElement("load_*");
+	private int load_(String field) { return super.elementFactory.getIdByElement("load_" + field); }	
+	
+	// variables
+	
+	private int flowsTo = super.elementFactory.getIdByElement("flowsTo");
+	private int flowsToBar = super.elementFactory.getIdByElement("flowsToBar");
+
+	private int flowsToRightRight_star = super.elementFactory.getIdByElement("flowsToRightRight_*");
+	private int flowsToRightRight_(String reference) { return super.elementFactory.getIdByElement("flowsToRightRight_" + reference); }
+	private int flowsToRight = super.elementFactory.getIdByElement("flowsToRight");
+	
+	private int alias = super.elementFactory.getIdByElement("alias");
+	
+	// various functions
+	
+	public FlowsToGraph() {
+		super.setWeight(store_star, 1);
+		super.setWeight(load_star, 1);
+		System.out.println(super.weights.get(super.elementFactory.getIdByElement("load_start")));
+	}
+	
+	public int getAssign() {
+		return this.assign;
+	}
+	
+	public int getNew() {
+		return this.new_terminal;
+	}
+	
+	public void addField(String field) {
+		this.fields.add(field);
+	}
+	
+	public int getLoadStar() {
+		return this.load_star;
+	}
+	
+	public int getLoad(String field) {
+		return this.load_(field);
+	}
+	
+	public int getStoreStar() {
+		return this.store_star;
+	}
+	
+	public int getStore(String field) {
+		return this.store_(field);
+	}
+	
+	public void addStubMethod(Set<String> args, String ret, String methodSignature) {
+		// temporary variable in the method
+		String methodVertex = "temp_" + methodSignature;
+		super.addEdge(methodVertex, methodVertex, this.load_star);
+		super.addEdge(methodVertex, methodVertex, this.store_star);
+		
+		// new object in the method
+		String objectVertex = "obj_" + methodSignature;
+		super.addEdge(objectVertex, objectVertex, this.new_terminal);
+		
+		// add edges to and from args
+		for(String arg : args) {
+			super.addEdge(arg, methodVertex, this.assign);
+			super.addEdge(methodVertex, arg, this.assign);
+		}
+		if(ret != null) {
+			super.addEdge(methodVertex, ret, this.assign);
+		}
+	}
+	
+	public NormalCFL getFlowsToCfl() {
+		NormalCFL normalCfl = new NormalCFL();
+
+		// add production flowsToRightRight_* -> alias load_*
+		normalCfl.addBinaryProduction(new BinaryProduction(this.flowsToRightRight_star, this.alias, this.load_star));
+		
+		// add production flowsToRight -> assign
+		normalCfl.addUnaryProduction(new UnaryProduction(this.flowsToRight, this.assign));
+		
+		// add production flowsToRight -> flowsToRight flowsToRight
+		normalCfl.addBinaryProduction(new BinaryProduction(this.flowsToRight, this.flowsToRight, this.flowsToRight));
+		
+		// add production flowsToRight -> store_* flowsToRightRight_*
+		normalCfl.addBinaryProduction(new BinaryProduction(this.flowsToRight, this.store_star, this.flowsToRightRight_star));
+		
+		// add production flowsTo ->  new flowsToRight
+		normalCfl.addBinaryProduction(new BinaryProduction(this.flowsTo, this.new_terminal, this.flowsToRight));
+		
+		// add production flowsTo -> new
+		normalCfl.addUnaryProduction(new UnaryProduction(this.flowsTo, this.new_terminal));
+
+		// add production alias -> flowsToBar flowsTo
+		normalCfl.addBinaryProduction(new BinaryProduction(this.alias, this.flowsToBar, this.flowsTo));
+		
+		for(String field : this.fields) {
+			// add production flowsToRightRight_f -> alias load_f
+			normalCfl.addBinaryProduction(new BinaryProduction(this.flowsToRightRight_(field), this.alias, this.load_(field)));
+			
+			// add production flowsToRight -> store_f flowsToRight_f
+			normalCfl.addBinaryProduction(new BinaryProduction(this.flowsToRight, this.store_(field), this.flowsToRightRight_(field)));
+			
+			// add production flowsToRight -> store_* flowsToRight_f
+			normalCfl.addBinaryProduction(new BinaryProduction(this.flowsToRight, this.store_star, this.flowsToRightRight_(field)));
+			
+			// add production flowsToRight -> store_f flowsToRight_*
+			normalCfl.addBinaryProduction(new BinaryProduction(this.flowsToRight, this.store_(field), this.flowsToRightRight_star));
+		}
+		
+		return normalCfl;
+	}
+
+	public Map<GraphElement,Path> getShortestPaths() {
+		return super.getShortestPaths(this.getFlowsToCfl(), this.flowsTo, this.flowsToBar);
+	}
+}
